@@ -1,0 +1,7 @@
+
+{
+  "buildCommand": null,
+  "installCommand": "echo 'No install needed'",
+  "framework": null,
+  "outputDirectory": "."
+}
