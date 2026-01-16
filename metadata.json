@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Neon Hand Waves",
+  "description": "An interactive artistic experience where your hand movements generate ultra-bright neon lightning and energy waves using computer vision.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
