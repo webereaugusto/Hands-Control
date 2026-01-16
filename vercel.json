@@ -1,7 +1,15 @@
 
 {
-  "buildCommand": null,
-  "installCommand": "echo 'No install needed'",
-  "framework": null,
-  "outputDirectory": "."
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "buildCommand": "echo 'Static Site'",
+  "installCommand": "echo 'Skip Install'",
+  "outputDirectory": ".",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
 }
