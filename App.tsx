@@ -57,6 +57,11 @@ const App: React.FC = () => {
     setIsTransforming(true);
 
     try {
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error("API_KEY não configurada nas variáveis de ambiente.");
+      }
+
       const captureCanvas = document.createElement('canvas');
       captureCanvas.width = videoRef.current.videoWidth;
       captureCanvas.height = videoRef.current.videoHeight;
@@ -64,9 +69,9 @@ const App: React.FC = () => {
       ctx?.drawImage(videoRef.current, 0, 0);
       const base64Image = captureCanvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       
-      // O modelo correto para edição/geração de imagem é o gemini-2.5-flash-image
+      // Modelo gemini-2.5-flash-image para manipulação visual
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -78,25 +83,22 @@ const App: React.FC = () => {
               },
             },
             {
-              text: 'Transform the face in this photo into the Gollum (Smigol) character from Lord of the Rings. Give him giant bulging eyes, a tiny nose, thin hair, and a wide creepy smile with a few teeth. Keep the background similar but make the person look exactly like the viral TikTok Smigol filter. Output the image only.',
+              text: 'Transform the face in this photo into the character Gollum (Smigol). Make large bulging eyes, thin hair, and a wide creepy smile. Output the resulting image only as data.',
             },
           ],
         },
       });
 
-      // Itera sobre as partes para encontrar a imagem gerada
       if (response.candidates && response.candidates[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.inlineData) {
-            const base64EncodeString = part.inlineData.data;
-            setSmigolImage(`data:image/png;base64,${base64EncodeString}`);
+            setSmigolImage(`data:image/png;base64,${part.inlineData.data}`);
             break;
           }
         }
       }
     } catch (error) {
-      console.error("Erro na transformação Smigol:", error);
-      // Fallback: permite tentar de novo após falha
+      console.error("Erro na transformação:", error);
       setInteractionTime(0);
     } finally {
       setIsTransforming(false);
@@ -157,15 +159,15 @@ const App: React.FC = () => {
       {smigolImage && (
         <div 
           className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in zoom-in duration-500"
-          onClick={() => setSmigolImage(null)}
+          onClick={() => { setSmigolImage(null); setInteractionTime(0); }}
         >
           <div className="relative max-w-2xl w-full aspect-video rounded-3xl overflow-hidden border-4 border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.5)]">
             <img src={smigolImage} alt="Smigol" className="w-full h-full object-cover" />
             <div className="absolute bottom-6 inset-x-0 text-center">
-              <span className="bg-amber-500 text-black px-6 py-2 rounded-full font-black text-lg uppercase tracking-tighter animate-bounce shadow-xl">MEU PRECIOSO!</span>
+              <span className="bg-amber-500 text-black px-6 py-2 rounded-full font-black text-lg uppercase tracking-tighter animate-bounce">MEU PRECIOSO!</span>
             </div>
             <button 
-              className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/80 transition-colors w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl"
+              className="absolute top-4 right-4 text-white bg-black/50 w-10 h-10 rounded-full flex items-center justify-center font-bold"
               onClick={(e) => { e.stopPropagation(); setSmigolImage(null); setInteractionTime(0); }}
             >✕</button>
           </div>
@@ -173,7 +175,7 @@ const App: React.FC = () => {
       )}
 
       <div className="absolute bottom-6 left-6 z-20 text-white/20 text-xs tracking-widest uppercase pointer-events-none font-mono">
-        Gollum AI Protocol • Lock: {Math.floor(interactionTime)}/10s
+        Status: {isTransforming ? 'TRANSFORMANDO...' : `INTERAÇÃO: ${Math.floor(interactionTime)}s`}
       </div>
     </div>
   );
